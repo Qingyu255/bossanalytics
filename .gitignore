@@ -1,0 +1,7 @@
+# Ignore Bid data excel files
+data/
+boss_2022-23_T1, 2.csv
+filtered_data.xlsx
+
+# old python files
+analytics.py

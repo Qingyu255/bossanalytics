@@ -1,0 +1,18 @@
+{
+    "cSpell.ignoreWords": [
+        "PYPLOT",
+        "matplotlib"
+    ],
+    "cSpell.words": [
+        "arrowprops",
+        "arrowstyle",
+        "autoalign",
+        "figsize",
+        "fontsize",
+        "textcoords",
+        "xlabel",
+        "xticks",
+        "xytext",
+        "ylabel"
+    ]
+}
