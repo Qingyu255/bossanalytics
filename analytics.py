@@ -86,6 +86,5 @@ class Analytics:
             y_axis_data.append(median)
             x_axis_data.append(instructor)
         return [x_axis_data, y_axis_data]
-
     ### Get Course Overview End ###
   
