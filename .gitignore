@@ -1,5 +1,2 @@
 # Ignore Bid data excel files
 data/
-
-# Misc
-analytics.py
