@@ -19,6 +19,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class ReturnStringArr(BaseModel):
+    data: List[str]
+
 class Dataset(BaseModel):
     data: List[float]
     backgroundColor: str
@@ -32,11 +35,27 @@ class OverviewCourseDataResponse(BaseModel):
     x_axis_values: List[str]
     datasets: List[Dataset]
 
+
 @app.get("/")
 async def root():
     return {
         "Hello":"World"
     }
+
+@app.get("/instructordata/{course_code}")
+async def returnInstructorsWhoTeachCourse(course_code):
+    try:
+        # pass in upper case!
+        response = ReturnStringArr(
+            data=analytics.get_instructors_by_course_code(course_code.upper())
+        )
+        return response
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Server Error"
+        ) 
 
 @app.get("/coursedata/overview/{course_code}")
 async def returnCourseOverviewData(course_code):
@@ -75,15 +94,40 @@ async def returnCourseInstructorOverviewData(course_code):
     """"Returns charting data in form of 2d array: [x_axis_data, y_axis_data]"""
     # ALWAYS PASS IN UPPER CASE COURSE CODE!
     try :
-        [x_axisDataArr, y_axisDataArr] = analytics.get_all_instructor_median_median_bid_by_course_code(course_code.upper())
+        [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_all_instructor_median_median_bid_by_course_code(course_code.upper())
         response = OverviewCourseDataResponse(
-            title="Median 'Median Bid' Price Across Instructors",
-            x_axis_label=f"Instructors Teaching {course_code}",
-            y_axis_label="Median 'Median Bid Price'",
-            x_axis_values=x_axisDataArr,
+            title=title,
+            x_axis_label=x_axis_label,
+            y_axis_label=y_axis_label,
+            x_axis_values=x_axis_data,
             datasets=[
                 Dataset(
-                    data=y_axisDataArr,
+                    data=y_axis_data,
+                    backgroundColor="rgba(75, 192, 192, 0.6)",
+                    borderColor="rgba(75, 192, 192, 1)",
+                    borderWidth=2,
+                )
+            ]
+        )
+        return response
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Server Error"
+        ) 
+    
+@app.get("/coursedata/bidpriceacrossterms/{course_code}/{window}/{instructor}")
+async def returnBidPriceDataAcrossTermsForSpecifiedCourseAndWindow(course_code, window, instructor):
+    try:
+        [x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_window(course_code.upper(), window, instructor)
+        response = OverviewCourseDataResponse(
+            title="Median 'Median Bid' Price Across Instructors",
+            x_axis_label=x_axis_label,
+            y_axis_label=y_axis_label,
+            x_axis_values=x_axis_data,
+            datasets=[
+                Dataset(
+                    data=y_axis_data,
                     backgroundColor="rgba(75, 192, 192, 0.6)",
                     borderColor="rgba(75, 192, 192, 1)",
                     borderWidth=2,

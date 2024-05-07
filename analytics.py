@@ -1,7 +1,6 @@
 ### This class is built for the functions calls in the FastAPI ###
 import pandas as pd
 from adjustText import adjust_text
-import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import LabelEncoder
@@ -26,6 +25,11 @@ class Analytics:
 
         self.filtered_data = filtered_data
 
+    # key used to sort Term string
+    def term_sort_key(self, term):
+        year, term_num = term.split(" Term ")
+        return int(year.split("-")[0]), int(term_num)
+
     ### Getters Start ###
     def get_unique_faculties(self):
         return self.filtered_data["School/Department"].unique()
@@ -41,12 +45,24 @@ class Analytics:
     
     def filter_by_faculty(self, faculty):
         """Returns df filtered by specified course_code"""
-        return self.filtered_data[self.filtered_data["Course Code"] == course_code]
+        return self.filtered_data[self.filtered_data["Course Code"] == faculty]
+
+    def filter_by_window(self, window):
+        """Returns df filtered by specified course_code"""
+        return self.filtered_data[self.filtered_data["Bidding Window"] == window]
+
 
     def filter_by_course_code_and_instructor(self, course_code, instructor_name):
         """Returns df filtered by specified course_code and instructor name"""
         filtered_by_course_code = self.filter_by_course_code(course_code)
         return filtered_by_course_code[filtered_by_course_code["Instructor"].str.strip() == instructor_name.strip()]
+    
+    def filter_by_course_code_instructor_and_window(self, course_code, instructor_name, window):
+        """Returns df filtered by specified course_code and instructor name"""
+        filtered_by_course_code = self.filter_by_course_code(course_code)
+        filtered_by_instructor = filtered_by_course_code[filtered_by_course_code["Instructor"] == instructor_name.strip()]
+        return filtered_by_instructor[filtered_by_instructor["Bidding Window"] == window]
+
     ### Filter Functions End###
 
 
@@ -77,14 +93,41 @@ class Analytics:
     
     def get_all_instructor_median_median_bid_by_course_code(self, course_code):
         """returns 2d array containing x_axis_data array and y_axis_data array"""
-        teaching_instructors = self.get_instructors_by_course_code(course_code)
         course_df = self.filter_by_course_code(course_code)
+        title="Median 'Median Bid' Price Across Instructors"
+        x_axis_label=f"Instructors Teaching {course_code}"
+        y_axis_label="Median 'Median Bid Price'"
         x_axis_data = []
         y_axis_data = []
+
+        teaching_instructors = self.get_instructors_by_course_code(course_code)
+
         for instructor in teaching_instructors:
             median = round(course_df[course_df["Instructor"] == instructor]["Median Bid"].median(), 2)
             y_axis_data.append(median)
             x_axis_data.append(instructor)
-        return [x_axis_data, y_axis_data]
+        
+
+        
+        return [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data]
     ### Get Course Overview End ###
+
+    ### Get Line chart Data for Bid Price Trends Start ###
+    def get_bid_price_data_by_course_code_and_window(self, course_code, window, instructor):
+        df = self.filter_by_course_code_instructor_and_window(course_code, instructor, window)
+        x_axis_label=f"Median Bid Price vs. Bidding Window for {instructor}'s {course_code} course in {window}"
+        y_axis_label="Median 'Median Bid Price'"
+        x_axis_data = []
+        y_axis_data = []
+        
+        # IMPT to sort the terms
+        terms_taught_for_specified_window = sorted(df["Term"].unique(), key=self.term_sort_key)
+        
+        for term in terms_taught_for_specified_window:
+            term_median_median_bid = round(df[df["Term"] == term]["Median Bid"].median(), 2)
+            x_axis_data.append(term)
+            y_axis_data.append(term_median_median_bid)
+
+        return [x_axis_label, x_axis_data, y_axis_label, y_axis_data]
+    ### Get Line chart Data for Bid Price Trends End ###
   
