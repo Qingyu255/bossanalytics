@@ -6,6 +6,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import LabelEncoder
 import warnings
 from sklearn.exceptions import DataConversionWarning
+import re
 
 class Analytics:
     def __init__(self, data_frame) -> None:
@@ -25,7 +26,34 @@ class Analytics:
 
         self.filtered_data = filtered_data
 
-    # key used to sort Term string
+    # key used to sort bidding window string
+    def bidding_window_sort_key(self, window):
+        # Regular expression to extract round and window information
+        match = re.search(r'(\d+[AB]?).*Window (\d+)', window)
+        if match:
+            # Convert the round part to a tuple of (number, sub-round), where sub-round is 'A' or 'B' or ''
+            round_part = match.group(1)
+            main_round = int(re.findall(r'\d+', round_part)[0])  # Main round number as integer
+            sub_round = re.findall(r'[AB]', round_part)  # Sub-round letter if any
+            sub_round = sub_round[0] if sub_round else ''  # Ensure sub-round is a single character or empty
+
+            # Window number as integer
+            window_number = int(match.group(2))
+
+            # Check for special category "Incoming Freshmen"
+            if 'Incoming Freshmen' in window:
+                # Assign a lower precedence to incoming freshmen
+                category = 1
+            else:
+                # Regular rounds have higher precedence
+                category = 0
+            
+            return (category, main_round, sub_round, window_number)
+        else:
+            # If the pattern doesn't match, return a tuple that sorts the item last
+            return (float('inf'),)
+
+    # key used to sort Bidding Window string
     def term_sort_key(self, term):
         year, term_num = term.split(" Term ")
         return int(year.split("-")[0]), int(term_num)
@@ -38,9 +66,11 @@ class Analytics:
         return self.filtered_data["Course Code"].unique()
     ### Getters End ###
 
+
     ### Filter Functions Start###
     def filter_by_course_code(self, course_code):
         """Returns df filtered by specified course_code"""
+        course_code = course_code.upper()
         return self.filtered_data[self.filtered_data["Course Code"] == course_code]
     
     def filter_by_faculty(self, faculty):
@@ -54,11 +84,13 @@ class Analytics:
 
     def filter_by_course_code_and_instructor(self, course_code, instructor_name):
         """Returns df filtered by specified course_code and instructor name"""
+        course_code = course_code.upper()
         filtered_by_course_code = self.filter_by_course_code(course_code)
         return filtered_by_course_code[filtered_by_course_code["Instructor"].str.strip() == instructor_name.strip()]
     
     def filter_by_course_code_instructor_and_window(self, course_code, instructor_name, window):
         """Returns df filtered by specified course_code and instructor name"""
+        course_code = course_code.upper()
         filtered_by_course_code = self.filter_by_course_code(course_code)
         filtered_by_instructor = filtered_by_course_code[filtered_by_course_code["Instructor"] == instructor_name.strip()]
         return filtered_by_instructor[filtered_by_instructor["Bidding Window"] == window]
@@ -69,6 +101,7 @@ class Analytics:
     ### Get Instructors By Functions Start###  
     def get_instructors_by_course_code(self, course_code):
         """Input: Course Code\nOutput: array of distinct instructors"""
+        course_code = course_code.upper()
         course_df = self.filter_by_course_code(course_code)
         return course_df["Instructor"].unique()
     
@@ -78,9 +111,20 @@ class Analytics:
     ### Get Instructors By Functions End ###
 
 
+    ### Get Bidding Window By Functions Start ###  
+    def get_bidding_windows_of_instructor_who_teach_course(self, course_code, instructor_name):
+        course_code = course_code.upper()
+        df = self.filter_by_course_code_and_instructor(course_code, instructor_name)
+        return sorted(df["Bidding Window"].unique(), key=self.bidding_window_sort_key)
+
+
+    ### Get Bidding Window By Functions End ###  
+
+
     ### Get Course Overview Start ###
     def get_min_max_median_mean_median_bid_values_by_course_code_and_instructor(self, course_code, instructor_name=None):
         """Returns the min, max, median, mean MEDIAN bid values for specified course code and instructor(if passed into args) in form of an array of:\n[min_median_value, max_median_value, median_median_value, mean_median_value]"""
+        course_code = course_code.upper()
         if instructor_name:
             course_df = self.filter_by_course_code_and_instructor(course_code, instructor_name)
         else:
@@ -93,8 +137,9 @@ class Analytics:
     
     def get_all_instructor_median_median_bid_by_course_code(self, course_code):
         """returns 2d array containing x_axis_data array and y_axis_data array"""
+        course_code = course_code.upper()
         course_df = self.filter_by_course_code(course_code)
-        title="Median 'Median Bid' Price Across Instructors"
+        title="Median 'Median Bid' Price (across all sections) against Instructors"
         x_axis_label=f"Instructors Teaching {course_code}"
         y_axis_label="Median 'Median Bid Price'"
         x_axis_data = []
@@ -107,15 +152,16 @@ class Analytics:
             y_axis_data.append(median)
             x_axis_data.append(instructor)
         
-
-        
         return [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data]
     ### Get Course Overview End ###
 
+
     ### Get Line chart Data for Bid Price Trends Start ###
     def get_bid_price_data_by_course_code_and_window(self, course_code, window, instructor):
+        course_code = course_code.upper()
         df = self.filter_by_course_code_instructor_and_window(course_code, instructor, window)
-        x_axis_label=f"Median Bid Price vs. Bidding Window for {instructor}'s {course_code} course in {window}"
+        title = "Median 'Median Bid' Price (across all sections) against Bidding Window"
+        x_axis_label="Bidding Window"
         y_axis_label="Median 'Median Bid Price'"
         x_axis_data = []
         y_axis_data = []
@@ -128,6 +174,6 @@ class Analytics:
             x_axis_data.append(term)
             y_axis_data.append(term_median_median_bid)
 
-        return [x_axis_label, x_axis_data, y_axis_label, y_axis_data]
+        return [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data]
     ### Get Line chart Data for Bid Price Trends End ###
   

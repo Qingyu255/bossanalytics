@@ -42,7 +42,7 @@ async def root():
         "Hello":"World"
     }
 
-@app.get("/instructordata/{course_code}")
+@app.get("/instructordata/instructor/{course_code}")
 async def returnInstructorsWhoTeachCourse(course_code):
     try:
         # pass in upper case!
@@ -56,7 +56,22 @@ async def returnInstructorsWhoTeachCourse(course_code):
             status_code=500,
             detail="Server Error"
         ) 
-
+    
+@app.get("/instructordata/bidding_windows_available/{course_code}/{instructor_name}")
+async def returnAvailableBiddingWindowsOfInstructorWhoTeachCourse(course_code, instructor_name):
+    try:
+        # pass in upper case!
+        response = ReturnStringArr(
+            data=analytics.get_bidding_windows_of_instructor_who_teach_course(course_code.upper(), instructor_name)
+        )
+        return response
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Server Error"
+        ) 
+    
 @app.get("/coursedata/overview/{course_code}")
 async def returnCourseOverviewData(course_code):
     """"Returns [Min, Max, Median, Mean] Median Bid Price"""
@@ -69,7 +84,7 @@ async def returnCourseOverviewData(course_code):
     try :
         y_axisDataArr = analytics.get_min_max_median_mean_median_bid_values_by_course_code_and_instructor(course_code.upper())
         response = OverviewCourseDataResponse(
-            title="Course Min, Max, Median, Mean 'Median Bid' Price",
+            title="",
             x_axis_label="Bidding Window",
             y_axis_label="Bid Price",
             x_axis_values=["Min 'median bid'", "Max 'median bid'", "Median 'median bid'", "Mean 'median bid'"],
@@ -116,12 +131,12 @@ async def returnCourseInstructorOverviewData(course_code):
             detail="Server Error"
         ) 
     
-@app.get("/coursedata/bidpriceacrossterms/{course_code}/{window}/{instructor}")
-async def returnBidPriceDataAcrossTermsForSpecifiedCourseAndWindow(course_code, window, instructor):
+@app.get("/coursedata/bidpriceacrossterms/{course_code}/{window}/{instructor_name}")
+async def returnBidPriceDataAcrossTermsForSpecifiedCourseAndWindow(course_code, window, instructor_name):
     try:
-        [x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_window(course_code.upper(), window, instructor)
+        [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_window(course_code.upper(), window, instructor_name)
         response = OverviewCourseDataResponse(
-            title="Median 'Median Bid' Price Across Instructors",
+            title=title,
             x_axis_label=x_axis_label,
             y_axis_label=y_axis_label,
             x_axis_values=x_axis_data,
