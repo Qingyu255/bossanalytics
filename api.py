@@ -134,7 +134,32 @@ async def returnCourseInstructorOverviewData(course_code):
 @app.get("/coursedata/bidpriceacrossterms/{course_code}/{window}/{instructor_name}")
 async def returnBidPriceDataAcrossTermsForSpecifiedCourseAndWindow(course_code, window, instructor_name):
     try:
-        [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_window(course_code.upper(), window, instructor_name)
+        [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_window_across_terms(course_code.upper(), window, instructor_name)
+        response = OverviewCourseDataResponse(
+            title=title,
+            x_axis_label=x_axis_label,
+            y_axis_label=y_axis_label,
+            x_axis_values=x_axis_data,
+            datasets=[
+                Dataset(
+                    data=y_axis_data,
+                    backgroundColor="rgba(75, 192, 192, 0.6)",
+                    borderColor="rgba(75, 192, 192, 1)",
+                    borderWidth=2,
+                )
+            ]
+        )
+        return response
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Server Error"
+        ) 
+    
+@app.get("/coursedata/bidpriceacrosswindows/{course_code}/{term}/{instructor_name}")
+async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, term, instructor_name):
+    try:
+        [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_term_across_windows(course_code.upper(), term, instructor_name)
         response = OverviewCourseDataResponse(
             title=title,
             x_axis_label=x_axis_label,
