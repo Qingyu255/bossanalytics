@@ -1,2 +1,4 @@
 # Ignore Bid data excel files
 data/
+
+*.pyc

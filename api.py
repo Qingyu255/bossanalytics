@@ -36,11 +36,18 @@ class OverviewCourseDataResponse(BaseModel):
     datasets: List[Dataset]
 
 
-@app.get("/")
+@app.get("/uniquecourses")
 async def root():
-    return {
-        "Hello":"World"
-    }
+    try:
+        response = ReturnStringArr (
+            data = analytics.get_unique_course_codes()
+        )
+        return response
+    except Exception as e:
+            raise HTTPException(
+            status_code=500,
+            detail="Server Error"
+        ) 
 
 @app.get("/instructordata/instructor/{course_code}")
 async def returnInstructorsWhoTeachCourse(course_code):
