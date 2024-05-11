@@ -26,6 +26,14 @@ class Analytics:
 
         self.filtered_data = filtered_data
 
+        course_codes = self.filtered_data["Course Code"].to_list()
+        course_names = self.filtered_data["Description"].to_list()
+        unique_course_code_to_course_name_map = {}
+        for i in range(len(course_codes)):
+            if course_codes[i] not in unique_course_code_to_course_name_map:
+                unique_course_code_to_course_name_map[course_codes[i]] = course_names[i]
+        self.unique_course_code_to_course_name_map = unique_course_code_to_course_name_map
+
     # key used to sort bidding window string
     def bidding_window_sort_key(self, window):
         # Regular expression to extract round and window information
@@ -64,6 +72,10 @@ class Analytics:
     
     def get_unique_course_codes(self):
         return self.filtered_data["Course Code"].unique()
+    
+    def get_course_name(self, course_code):
+        course_code = course_code.upper()
+        return self.unique_course_code_to_course_name_map[course_code]
     ### Getters End ###
 
 

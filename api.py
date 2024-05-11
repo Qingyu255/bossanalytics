@@ -2,7 +2,7 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 from analytics import Analytics
 
 dataframe = pd.read_excel("data/merged_file.xls")
@@ -22,22 +22,27 @@ app.add_middleware(
 class ReturnStringArr(BaseModel):
     data: List[str]
 
-class Dataset(BaseModel):
-    data: List[float]
-    backgroundColor: str
-    borderColor: str
-    borderWidth: int
+class ReturnDictionary(BaseModel):
+    data: Dict[str, str]
 
-class OverviewCourseDataResponse(BaseModel):
-    title: str
-    x_axis_label: str
-    y_axis_label: str
-    x_axis_values: List[str]
+class Dataset(BaseModel):
+    label: str
+    data: List[float]
+    borderColor: str
+    backgroundColor: str
+
+class ChartData(BaseModel):
+    responsive: bool
+    labels: List[str]
     datasets: List[Dataset]
+
+class CourseDataResponse(BaseModel):
+    title: str
+    chartData: ChartData
 
 
 @app.get("/uniquecourses")
-async def root():
+async def get_unique_course_codes():
     try:
         response = ReturnStringArr (
             data = analytics.get_unique_course_codes()
@@ -48,6 +53,16 @@ async def root():
             status_code=500,
             detail="Server Error"
         ) 
+    
+@app.get("/coursename/{course_code}")
+async def returnCourseNameByCourseCode(course_code):
+    try:
+        return analytics.get_course_name(course_code)
+    except Exception as e:
+            raise HTTPException(
+            status_code=500,
+            detail="Server Error"
+        )
 
 @app.get("/instructordata/instructor/{course_code}")
 async def returnInstructorsWhoTeachCourse(course_code):
@@ -61,7 +76,7 @@ async def returnInstructorsWhoTeachCourse(course_code):
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail="Server Error"
+            detail=str(e)
         ) 
     
 @app.get("/instructordata/bidding_windows_available/{course_code}/{instructor_name}")
@@ -76,7 +91,7 @@ async def returnAvailableBiddingWindowsOfInstructorWhoTeachCourse(course_code, i
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail="Server Error"
+            detail=str(e)
         ) 
     
 @app.get("/coursedata/overview/{course_code}")
@@ -86,29 +101,28 @@ async def returnCourseOverviewData(course_code):
     if course_code.upper() not in valid_course_codes:
         raise HTTPException(
             status_code=404,
-            detail="course not found"
+            detail=str(e)
         )
     try :
         y_axisDataArr = analytics.get_min_max_median_mean_median_bid_values_by_course_code_and_instructor(course_code.upper())
-        response = OverviewCourseDataResponse(
-            title="",
-            x_axis_label="Bidding Window",
-            y_axis_label="Bid Price",
-            x_axis_values=["Min 'median bid'", "Max 'median bid'", "Median 'median bid'", "Mean 'median bid'"],
-            datasets=[
-                Dataset(
-                    data=y_axisDataArr,
-                    backgroundColor="rgba(75, 192, 192, 0.6)",
-                    borderColor="rgba(75, 192, 192, 1)",
-                    borderWidth=2,
-                )
-            ]
+        response = CourseDataResponse(
+            title="Overview",
+            chartData= ChartData(
+                responsive=True,
+                labels=["Min 'median bid'", "Max 'median bid'", "Median 'median bid'", "Mean 'median bid'"],
+                datasets=[{
+                    "label": "Median Bid",
+                    "data": y_axisDataArr,
+                    "borderColor": "rgba(75, 192, 192, 1)",
+                    "backgroundColor": "rgba(53, 162, 235, 0.5)"
+                }]
+            )
         )
         return response
     except Exception as e:
         raise HTTPException(
             status_code=404,
-            detail="course not found"
+            detail=str(e)
         ) 
 
 @app.get("/coursedata/overview/instructor_median_bid_chart/{course_code}")
@@ -117,73 +131,70 @@ async def returnCourseInstructorOverviewData(course_code):
     # ALWAYS PASS IN UPPER CASE COURSE CODE!
     try :
         [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_all_instructor_median_median_bid_by_course_code(course_code.upper())
-        response = OverviewCourseDataResponse(
+        response = CourseDataResponse(
             title=title,
-            x_axis_label=x_axis_label,
-            y_axis_label=y_axis_label,
-            x_axis_values=x_axis_data,
-            datasets=[
-                Dataset(
-                    data=y_axis_data,
-                    backgroundColor="rgba(75, 192, 192, 0.6)",
-                    borderColor="rgba(75, 192, 192, 1)",
-                    borderWidth=2,
-                )
-            ]
+            chartData= ChartData(
+                responsive=True,
+                labels=x_axis_data,
+                datasets=[{
+                    "label": "Median Bid",
+                    "data": y_axis_data,
+                    "borderColor": "rgba(75, 192, 192, 1)",
+                    "backgroundColor": "rgba(53, 162, 235, 0.5)"
+                }]
+            )
         )
         return response
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail="Server Error"
+            detail=str(e)
         ) 
     
 @app.get("/coursedata/bidpriceacrossterms/{course_code}/{window}/{instructor_name}")
 async def returnBidPriceDataAcrossTermsForSpecifiedCourseAndWindow(course_code, window, instructor_name):
     try:
         [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_window_across_terms(course_code.upper(), window, instructor_name)
-        response = OverviewCourseDataResponse(
+        response = CourseDataResponse(
             title=title,
-            x_axis_label=x_axis_label,
-            y_axis_label=y_axis_label,
-            x_axis_values=x_axis_data,
-            datasets=[
-                Dataset(
-                    data=y_axis_data,
-                    backgroundColor="rgba(75, 192, 192, 0.6)",
-                    borderColor="rgba(75, 192, 192, 1)",
-                    borderWidth=2,
-                )
-            ]
+            chartData= ChartData(
+                responsive=True,
+                labels=x_axis_data,
+                datasets=[{
+                    "label": "Median Bid",
+                    "data": y_axis_data,
+                    "borderColor": "rgba(75, 192, 192, 1)",
+                    "backgroundColor": "rgba(53, 162, 235, 0.5)"
+                }]
+            )
         )
         return response
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail="Server Error"
+            detail=str(e)
         ) 
     
 @app.get("/coursedata/bidpriceacrosswindows/{course_code}/{term}/{instructor_name}")
 async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, term, instructor_name):
     try:
         [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_term_across_windows(course_code.upper(), term, instructor_name)
-        response = OverviewCourseDataResponse(
+        response = CourseDataResponse(
             title=title,
-            x_axis_label=x_axis_label,
-            y_axis_label=y_axis_label,
-            x_axis_values=x_axis_data,
-            datasets=[
-                Dataset(
-                    data=y_axis_data,
-                    backgroundColor="rgba(75, 192, 192, 0.6)",
-                    borderColor="rgba(75, 192, 192, 1)",
-                    borderWidth=2,
-                )
-            ]
+            chartData= ChartData(
+                responsive=True,
+                labels=x_axis_data,
+                datasets=[{
+                    "label": "Median Bid",
+                    "data": y_axis_data,
+                    "borderColor": "rgba(75, 192, 192, 1)",
+                    "backgroundColor": "rgba(53, 162, 235, 0.5)"
+                }]
+            )
         )
         return response
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail="Server Error"
+            detail=str(e)
         ) 
