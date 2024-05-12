@@ -2,7 +2,7 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Optional
 from analytics import Analytics
 
 dataframe = pd.read_excel("data/merged_file.xls")
@@ -31,6 +31,17 @@ class Dataset(BaseModel):
     borderColor: str
     backgroundColor: str
 
+class MultitypeDataset(BaseModel):
+    type: str
+    label: str
+    data: List[float]
+    borderColor: str
+    backgroundColor: str
+    yAxisID: str
+
+class ReturnMultichartDatasetArr(BaseModel):
+    data: List[MultitypeDataset]
+    
 class ChartData(BaseModel):
     responsive: bool
     labels: List[str]
@@ -43,9 +54,10 @@ class CourseDataResponse(BaseModel):
 
 @app.get("/uniquecourses")
 async def get_unique_course_codes():
+    # returns string of course_code : course_name
     try:
         response = ReturnStringArr (
-            data = analytics.get_unique_course_codes()
+            data = analytics.course_code_and_name_str_array
         )
         return response
     except Exception as e:
@@ -60,8 +72,8 @@ async def returnCourseNameByCourseCode(course_code):
         return analytics.get_course_name(course_code)
     except Exception as e:
             raise HTTPException(
-            status_code=500,
-            detail="Server Error"
+            status_code=404,
+            detail="course Not Found"
         )
 
 @app.get("/instructordata/instructor/{course_code}")
@@ -101,12 +113,12 @@ async def returnCourseOverviewData(course_code):
     if course_code.upper() not in valid_course_codes:
         raise HTTPException(
             status_code=404,
-            detail=str(e)
+            detail="Course Code Not Found"
         )
     try :
         y_axisDataArr = analytics.get_min_max_median_mean_median_bid_values_by_course_code_and_instructor(course_code.upper())
         response = CourseDataResponse(
-            title="Overview",
+            title="Overview (across all sections from AY 2019/20 onwards)",
             chartData= ChartData(
                 responsive=True,
                 labels=["Min 'median bid'", "Max 'median bid'", "Median 'median bid'", "Mean 'median bid'"],
@@ -164,7 +176,7 @@ async def returnBidPriceDataAcrossTermsForSpecifiedCourseAndWindow(course_code, 
                     "label": "Median Bid",
                     "data": y_axis_data,
                     "borderColor": "rgba(75, 192, 192, 1)",
-                    "backgroundColor": "rgba(53, 162, 235, 0.5)"
+                    "backgroundColor": "rgba(53, 162, 235, 0.5)",
                 }]
             )
         )
@@ -188,10 +200,41 @@ async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, 
                     "label": "Median Bid",
                     "data": y_axis_data,
                     "borderColor": "rgba(75, 192, 192, 1)",
-                    "backgroundColor": "rgba(53, 162, 235, 0.5)"
+                    "backgroundColor": "rgba(53, 162, 235, 0.2)",
                 }]
             )
         )
+        return response
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
+@app.get("/coursedata/bidpriceacrosswindows/vacancies/{course_code}/{window}/{instructor_name}")
+async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, window, instructor_name):
+    try:
+        [y_axis_data_before_vacancies, y_axis_data_after_vacancies] = analytics.get_before_after_vacancies_by_course_code_and_window_across_terms(course_code, window, instructor_name)
+        response = ReturnMultichartDatasetArr(data = [
+            MultitypeDataset(
+                # type is lowercase
+                type = "bar",
+                label = "Before Process Vacancies",
+                data = y_axis_data_before_vacancies,
+                borderColor = "rgb(255, 99, 132)",
+                backgroundColor = "rgba(255, 99, 132, 0.2)",
+                fill = False,
+                yAxisID = 'y1'
+            ),
+            MultitypeDataset(
+                type = "bar",
+                label = "After Process Vacancies",
+                data = y_axis_data_after_vacancies,
+                borderColor = "rgb(53, 162, 235)",
+                backgroundColor = "rgba(53, 162, 235, 0.2)",
+                yAxisID = 'y1',
+            )
+        ])
         return response
     except Exception as e:
         raise HTTPException(

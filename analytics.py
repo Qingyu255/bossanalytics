@@ -28,11 +28,14 @@ class Analytics:
 
         course_codes = self.filtered_data["Course Code"].to_list()
         course_names = self.filtered_data["Description"].to_list()
+        course_code_and_name_str_array = []
         unique_course_code_to_course_name_map = {}
         for i in range(len(course_codes)):
             if course_codes[i] not in unique_course_code_to_course_name_map:
                 unique_course_code_to_course_name_map[course_codes[i]] = course_names[i]
+                course_code_and_name_str_array.append(course_codes[i] + ": " + course_names[i])
         self.unique_course_code_to_course_name_map = unique_course_code_to_course_name_map
+        self.course_code_and_name_str_array = course_code_and_name_str_array
 
     # key used to sort bidding window string
     def bidding_window_sort_key(self, window):
@@ -137,8 +140,6 @@ class Analytics:
         course_code = course_code.upper()
         df = self.filter_by_course_code_and_instructor(course_code, instructor_name)
         return sorted(df["Bidding Window"].unique(), key=self.bidding_window_sort_key)
-
-
     ### Get Bidding Window By Functions End ###  
 
 
@@ -216,4 +217,28 @@ class Analytics:
 
         return [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data]
     ### Get Line chart Data for Bid Price Trends End ###
+
+
+    ### Get MultitypeChart Extra DataArr Start ### 
+    def get_before_after_vacancies_by_course_code_and_window_across_terms(self, course_code, window, instructor, filter_by_section=""):
+        course_code = course_code.upper()
+        df = self.filter_by_course_code_instructor_and_window(course_code, instructor, window)
+        if filter_by_section != "":
+            df = df[df["Section"] == filter_by_section]
+        terms_taught = sorted(df["Term"].unique(), key=self.term_sort_key)
+        
+        y_axis_data_before_vacancies = []
+        y_axis_data_after_vacancies = []
+        for term in terms_taught:
+            term_df = df[df["Term"] == term]
+            term_before_process_vacancies = term_df["Before Process Vacancy"].sum()
+            term_after_process_vacancies = term_df["After Process Vacancy"].sum()
+            y_axis_data_before_vacancies.append(term_before_process_vacancies)
+            y_axis_data_after_vacancies.append(term_after_process_vacancies)
+        return [y_axis_data_before_vacancies, y_axis_data_after_vacancies]
+
+
+
+
+    ### Get MultitypeChart Extra DataArr End ### 
   
