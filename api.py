@@ -190,7 +190,7 @@ async def returnBidPriceDataAcrossTermsForSpecifiedCourseAndWindow(course_code, 
 @app.get("/coursedata/bidpriceacrosswindows/{course_code}/{term}/{instructor_name}")
 async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, term, instructor_name):
     try:
-        [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_term_across_windows(course_code.upper(), term, instructor_name)
+        [title, x_axis_data, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_term_across_windows(course_code, term, instructor_name)
         response = CourseDataResponse(
             title=title,
             chartData= ChartData(
@@ -211,8 +211,8 @@ async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, 
             detail=str(e)
         )
     
-@app.get("/coursedata/bidpriceacrosswindows/vacancies/{course_code}/{window}/{instructor_name}")
-async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, window, instructor_name):
+@app.get("/coursedata/bidpriceacrossterms/vacancies/{course_code}/{window}/{instructor_name}")
+async def returnBeforeAfterVacanciesForCourseAndWindowOverTerm(course_code, window, instructor_name):
     try:
         [y_axis_data_before_vacancies, y_axis_data_after_vacancies] = analytics.get_before_after_vacancies_by_course_code_and_window_across_terms(course_code, window, instructor_name)
         response = ReturnMultichartDatasetArr(data = [
@@ -240,4 +240,36 @@ async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, 
         raise HTTPException(
             status_code=500,
             detail=str(e)
-        ) 
+        )
+    
+
+@app.get("/coursedata/bidpriceacrosswindows/vacancies/{course_code}/{term}/{instructor_name}")
+async def returnBeforeAfterVacanciesForCourseAndTermOverWindow(course_code, term, instructor_name):
+    try:
+        [y_axis_data_before_vacancies, y_axis_data_after_vacancies] = analytics.get_before_after_vacancies_by_course_code_and_term_across_windows(course_code, term, instructor_name)
+        response = ReturnMultichartDatasetArr(data = [
+            MultitypeDataset(
+                # type is lowercase
+                type = "bar",
+                label = "Before Process Vacancies",
+                data = y_axis_data_before_vacancies,
+                borderColor = "rgb(255, 99, 132)",
+                backgroundColor = "rgba(255, 99, 132, 0.2)",
+                fill = False,
+                yAxisID = 'y1'
+            ),
+            MultitypeDataset(
+                type = "bar",
+                label = "After Process Vacancies",
+                data = y_axis_data_after_vacancies,
+                borderColor = "rgb(53, 162, 235)",
+                backgroundColor = "rgba(53, 162, 235, 0.2)",
+                yAxisID = 'y1',
+            )
+        ])
+        return response
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )

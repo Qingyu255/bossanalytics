@@ -107,7 +107,7 @@ class Analytics:
         return filtered_by_course_code[filtered_by_course_code["Instructor"].str.strip() == instructor_name.strip()]
     
     def filter_by_course_code_instructor_and_window(self, course_code, instructor_name, window):
-        """Returns df filtered by specified course_code and instructor name"""
+        """Returns df filtered by specified course_code, instructor name and window"""
         course_code = course_code.upper()
         filtered_by_course_code = self.filter_by_course_code(course_code)
         filtered_by_instructor = filtered_by_course_code[filtered_by_course_code["Instructor"] == instructor_name.strip()]
@@ -115,7 +115,7 @@ class Analytics:
 
     def filter_by_course_code_instructor_and_term(self, course_code, instructor_name, term):
         course_code = course_code.upper()
-        filtered_by_course_code = self.filter_by_term(term)
+        filtered_by_course_code = self.filter_by_course_code(course_code)
         filtered_by_instructor = filtered_by_course_code[filtered_by_course_code["Instructor"] == instructor_name.strip()]
         return filtered_by_instructor[filtered_by_instructor["Term"] == term]
         
@@ -202,8 +202,6 @@ class Analytics:
         course_code = course_code.upper()
         df = self.filter_by_course_code_instructor_and_term(course_code, instructor, term)
         title = f"Median 'Median Bid' Price (across all sections) against Bidding Window for {term}"
-        x_axis_label="Bidding Window"
-        y_axis_label="Median 'Median Bid Price'"
         x_axis_data = []
         y_axis_data = []
         
@@ -215,7 +213,7 @@ class Analytics:
             x_axis_data.append(window)
             y_axis_data.append(window_median_median_bid)
 
-        return [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data]
+        return [title, x_axis_data, y_axis_data]
     ### Get Line chart Data for Bid Price Trends End ###
 
 
@@ -238,7 +236,21 @@ class Analytics:
         return [y_axis_data_before_vacancies, y_axis_data_after_vacancies]
 
 
+    def get_before_after_vacancies_by_course_code_and_term_across_windows(self, course_code, term, instructor):
+        course_code = course_code.upper()
+        df = self.filter_by_course_code_instructor_and_term(course_code, instructor, term)
 
+        windows = sorted(df["Bidding Window"].unique(), key=self.bidding_window_sort_key)
+        
+        y_axis_data_before_vacancies = []
+        y_axis_data_after_vacancies = []
+        for window in windows:
+            window_df = df[df["Bidding Window"] == window]
+            window_before_process_vacancies = window_df["Before Process Vacancy"].sum()
+            window_after_process_vacancies = window_df["After Process Vacancy"].sum()
+            y_axis_data_before_vacancies.append(window_before_process_vacancies)
+            y_axis_data_after_vacancies.append(window_after_process_vacancies)
+        return [y_axis_data_before_vacancies, y_axis_data_after_vacancies]
 
     ### Get MultitypeChart Extra DataArr End ### 
   
