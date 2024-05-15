@@ -121,6 +121,10 @@ class Analytics:
         
     ### Filter Functions End###
 
+    def get_terms_by_course_code_and_instructor(self, course_code, instructor_name):
+        filtered_by_course_code = self.filter_by_course_code(course_code)
+        filtered_by_instructor = filtered_by_course_code[filtered_by_course_code["Instructor"] == instructor_name.strip()]
+        return sorted(filtered_by_instructor["Term"].unique(), key=self.term_sort_key, reverse=True)
 
     ### Get Instructors By Functions Start###  
     def get_instructors_by_course_code(self, course_code):
@@ -155,26 +159,28 @@ class Analytics:
         max_median_value = course_df["Median Bid"].max()
         median_median_value = round(course_df["Median Bid"].median(), 2)
         mean_median_value = round(course_df["Median Bid"].mean(), 2)
-        return [min_median_value, max_median_value, median_median_value, mean_median_value]
+        return [min_median_value, median_median_value, mean_median_value, max_median_value]
     
-    def get_all_instructor_median_median_bid_by_course_code(self, course_code):
+    def get_all_instructor_median_and_mean_median_bid_by_course_code(self, course_code):
         """returns 2d array containing x_axis_data array and y_axis_data array"""
         course_code = course_code.upper()
         course_df = self.filter_by_course_code(course_code)
-        title="Median 'Median Bid' Price (across all sections) against Instructors"
-        x_axis_label=f"Instructors Teaching {course_code}"
-        y_axis_label="Median 'Median Bid Price'"
+        title="Median and Mean 'Median Bid' Price (across all sections) against Instructors"
         x_axis_data = []
-        y_axis_data = []
+        median_median_bid_y_axis_data = []
+        mean_median_bid_y_axis_data = []
 
         teaching_instructors = self.get_instructors_by_course_code(course_code)
 
         for instructor in teaching_instructors:
-            median = round(course_df[course_df["Instructor"] == instructor]["Median Bid"].median(), 2)
-            y_axis_data.append(median)
+            series = course_df[course_df["Instructor"] == instructor]["Median Bid"]
+            median = round(series.median(), 2)
+            median_median_bid_y_axis_data.append(median)
+
+            mean = round(series.mean(), 2)
+            mean_median_bid_y_axis_data.append(mean)
             x_axis_data.append(instructor)
-        
-        return [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data]
+        return [title, x_axis_data, median_median_bid_y_axis_data, mean_median_bid_y_axis_data]
     ### Get Course Overview End ###
 
 

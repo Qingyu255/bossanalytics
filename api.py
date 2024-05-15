@@ -106,6 +106,21 @@ async def returnAvailableBiddingWindowsOfInstructorWhoTeachCourse(course_code, i
             detail=str(e)
         ) 
     
+@app.get("/instructordata/terms_available/{course_code}/{instructor_name}")
+async def returnAvailableTermsOfInstructorWhoTeachCourse(course_code, instructor_name):
+    try:
+        # pass in upper case!
+        response = ReturnStringArr(
+            data=analytics.get_terms_by_course_code_and_instructor(course_code.upper(), instructor_name)
+        )
+        return response
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 @app.get("/coursedata/overview/{course_code}")
 async def returnCourseOverviewData(course_code):
     """"Returns [Min, Max, Median, Mean] Median Bid Price"""
@@ -121,12 +136,12 @@ async def returnCourseOverviewData(course_code):
             title="Overview (across all sections from AY 2019/20 onwards)",
             chartData= ChartData(
                 responsive=True,
-                labels=["Min 'median bid'", "Max 'median bid'", "Median 'median bid'", "Mean 'median bid'"],
+                labels=["Min 'median bid'", "Median 'median bid'", "Mean 'median bid'", "Max 'median bid'"],
                 datasets=[{
                     "label": "Median Bid",
                     "data": y_axisDataArr,
-                    "borderColor": "rgba(75, 192, 192, 1)",
-                    "backgroundColor": "rgba(53, 162, 235, 0.5)"
+                    "borderColor": "",
+                    "backgroundColor": "rgba(41, 128, 185, 1)"
                 }]
             )
         )
@@ -142,17 +157,23 @@ async def returnCourseInstructorOverviewData(course_code):
     """"Returns charting data in form of 2d array: [x_axis_data, y_axis_data]"""
     # ALWAYS PASS IN UPPER CASE COURSE CODE!
     try :
-        [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_all_instructor_median_median_bid_by_course_code(course_code.upper())
+        [title, x_axis_data, median_median_bid_y_axis_data, mean_median_bid_y_axis_data] = analytics.get_all_instructor_median_and_mean_median_bid_by_course_code(course_code.upper())
         response = CourseDataResponse(
             title=title,
             chartData= ChartData(
                 responsive=True,
                 labels=x_axis_data,
                 datasets=[{
-                    "label": "Median Bid",
-                    "data": y_axis_data,
-                    "borderColor": "rgba(75, 192, 192, 1)",
-                    "backgroundColor": "rgba(53, 162, 235, 0.5)"
+                    "label": "Median 'Median Bid' price",
+                    "data": median_median_bid_y_axis_data,
+                    "borderColor": "",
+                    "backgroundColor": "rgba(41, 128, 185, 1)"
+                },
+                {
+                    "label": "Mean 'Median Bid' price",
+                    "data": mean_median_bid_y_axis_data,
+                    "borderColor": "",
+                    "backgroundColor": "rgba(75, 192, 192, 1)"
                 }]
             )
         )
@@ -176,7 +197,7 @@ async def returnBidPriceDataAcrossTermsForSpecifiedCourseAndWindow(course_code, 
                     "label": "Median Bid",
                     "data": y_axis_data,
                     "borderColor": "rgba(75, 192, 192, 1)",
-                    "backgroundColor": "rgba(53, 162, 235, 0.5)",
+                    "backgroundColor": "rgba(41, 128, 185, 1)",
                 }]
             )
         )
@@ -200,7 +221,7 @@ async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, 
                     "label": "Median Bid",
                     "data": y_axis_data,
                     "borderColor": "rgba(75, 192, 192, 1)",
-                    "backgroundColor": "rgba(53, 162, 235, 0.2)",
+                    "backgroundColor": "rgba(41, 128, 185, 1)",
                 }]
             )
         )
