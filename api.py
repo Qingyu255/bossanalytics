@@ -52,6 +52,20 @@ class CourseDataResponse(BaseModel):
     chartData: ChartData
 
 
+@app.get("/uniqueprofessors")
+async def get_unique_professors():
+    # returns string of course_code : course_name
+    try:
+        response = ReturnStringArr (
+            data = analytics.get_unique_professors()
+        )
+        return response
+    except Exception as e:
+            raise HTTPException(
+            status_code=500,
+            detail="Server Error"
+        )
+
 @app.get("/uniquecourses")
 async def get_unique_course_codes():
     # returns string of course_code : course_name

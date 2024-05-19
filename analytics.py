@@ -70,6 +70,9 @@ class Analytics:
         return int(year.split("-")[0]), int(term_num)
 
     ### Getters Start ###
+    def get_unique_professors(self):
+        return self.filtered_data["Instructor"].unique()
+    
     def get_unique_faculties(self):
         return self.filtered_data["School/Department"].unique()
     
