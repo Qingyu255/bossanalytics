@@ -1,11 +1,4 @@
 ### This class is built for the functions calls in the FastAPI ###
-import pandas as pd
-from adjustText import adjust_text
-import numpy as np
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import LabelEncoder
-import warnings
-from sklearn.exceptions import DataConversionWarning
 import re
 
 class Analytics:
@@ -74,13 +67,13 @@ class Analytics:
 
     ### Getters Start ###
     def get_unique_professors(self):
-        return self.filtered_data["Instructor"].unique()
+        return list(self.filtered_data["Instructor"].unique())
     
     def get_unique_faculties(self):
-        return self.filtered_data["School/Department"].unique()
+        return list(self.filtered_data["School/Department"].unique())
     
     def get_unique_course_codes(self):
-        return self.filtered_data["Course Code"].unique()
+        return list(self.filtered_data["Course Code"].unique())
     
     def get_course_name(self, course_code):
         course_code = course_code.upper()
@@ -137,7 +130,7 @@ class Analytics:
         """Input: Course Code\nOutput: array of distinct instructors"""
         course_code = course_code.upper()
         course_df = self.filter_by_course_code(course_code)
-        return course_df["Instructor"].unique()
+        return list(course_df["Instructor"].unique())
     
     def get_instructors_by_faculty(self, faculty):
         return self.filtered_data[faculty].unique()
