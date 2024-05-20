@@ -89,6 +89,19 @@ async def returnCourseNameByCourseCode(course_code):
             status_code=404,
             detail="course Not Found"
         )
+    
+@app.get("/coursestaughtbyprofessor/{instructor_name}")
+async def returnCourseTaughtByProfessor(instructor_name):
+    try:
+        response = ReturnStringArr (
+            data = analytics.get_courses_by_professor(instructor_name)
+        )
+        return response
+    except Exception as e:
+            raise HTTPException(
+            status_code=404,
+            detail="Not Found"
+        )
 
 @app.get("/instructordata/instructor/{course_code}")
 async def returnInstructorsWhoTeachCourse(course_code):
@@ -119,6 +132,21 @@ async def returnAvailableBiddingWindowsOfInstructorWhoTeachCourse(course_code, i
             status_code=500,
             detail=str(e)
         ) 
+
+@app.get("/instructordata/sections_available/{course_code}/{instructor_name}/{selectedTerm}")
+async def returnAvailableSections(course_code, instructor_name, selectedTerm):
+    try:
+        # pass in upper case!
+        response = ReturnStringArr(
+            data=analytics.get_sections_for_specific_course_instructor_term(course_code.upper(), instructor_name, selectedTerm)
+        )
+        return response
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )   
     
 @app.get("/instructordata/terms_available/{course_code}/{instructor_name}")
 async def returnAvailableTermsOfInstructorWhoTeachCourse(course_code, instructor_name):
@@ -201,7 +229,7 @@ async def returnCourseInstructorOverviewData(course_code):
 @app.get("/coursedata/bidpriceacrossterms/{course_code}/{window}/{instructor_name}")
 async def returnBidPriceDataAcrossTermsForSpecifiedCourseAndWindow(course_code, window, instructor_name):
     try:
-        [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_window_across_terms(course_code.upper(), window, instructor_name)
+        [title, x_axis_data, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_window_across_terms(course_code.upper(), window, instructor_name)
         response = CourseDataResponse(
             title=title,
             chartData= ChartData(
@@ -246,6 +274,36 @@ async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, 
             detail=str(e)
         )
     
+@app.get("/coursedata/sectionbidpriceacrosswindows/{course_code}/{term}/{instructor_name}/{section}")
+async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, term, instructor_name, section):
+    try:
+        [title, x_axis_data, y_axis_data_median_bid, y_axis_data_min_bid] = analytics.get_bid_price_data_by_course_code_term_and_section_across_windows(course_code, term, instructor_name, section)
+        response = CourseDataResponse(
+            title=title,
+            chartData= ChartData(
+                responsive=True,
+                labels=x_axis_data,
+                datasets=[{
+                    "label": "Median Bid",
+                    "data": y_axis_data_median_bid,
+                    "borderColor": "rgba(75, 192, 192, 1)",
+                    "backgroundColor": "rgba(41, 128, 185, 1)",
+                },
+                {
+                    "label": "Min Bid",
+                    "data": y_axis_data_min_bid,
+                    "borderColor": "rgba(75, 50, 192, 1)",
+                    "backgroundColor": "rgba(41, 128, 185, 1)",
+                }]
+            )
+        )
+        return response
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 @app.get("/coursedata/bidpriceacrossterms/vacancies/{course_code}/{window}/{instructor_name}")
 async def returnBeforeAfterVacanciesForCourseAndWindowOverTerm(course_code, window, instructor_name):
     try:
@@ -282,6 +340,37 @@ async def returnBeforeAfterVacanciesForCourseAndWindowOverTerm(course_code, wind
 async def returnBeforeAfterVacanciesForCourseAndTermOverWindow(course_code, term, instructor_name):
     try:
         [y_axis_data_before_vacancies, y_axis_data_after_vacancies] = analytics.get_before_after_vacancies_by_course_code_and_term_across_windows(course_code, term, instructor_name)
+        response = ReturnMultichartDatasetArr(data = [
+            MultitypeDataset(
+                # type is lowercase
+                type = "bar",
+                label = "Before Process Vacancies",
+                data = y_axis_data_before_vacancies,
+                borderColor = "rgb(255, 99, 132)",
+                backgroundColor = "rgba(255, 99, 132, 0.2)",
+                fill = False,
+                yAxisID = 'y1'
+            ),
+            MultitypeDataset(
+                type = "bar",
+                label = "After Process Vacancies",
+                data = y_axis_data_after_vacancies,
+                borderColor = "rgb(53, 162, 235)",
+                backgroundColor = "rgba(53, 162, 235, 0.2)",
+                yAxisID = 'y1',
+            )
+        ])
+        return response
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
+@app.get("/coursedata/sectionbidpriceacrosswindows/vacancies/{course_code}/{term}/{instructor_name}/{section}")
+async def returnBeforeAfterVacanciesForCourseTermAndSectionOverWindow(course_code, term, instructor_name, section):
+    try:
+        [y_axis_data_before_vacancies, y_axis_data_after_vacancies] = analytics.get_before_after_vacancies_by_course_code_term_and_section_across_windows(course_code, term, instructor_name, section)
         response = ReturnMultichartDatasetArr(data = [
             MultitypeDataset(
                 # type is lowercase

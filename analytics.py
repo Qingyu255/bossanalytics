@@ -32,7 +32,10 @@ class Analytics:
         unique_course_code_to_course_name_map = {}
         for i in range(len(course_codes)):
             if course_codes[i] not in unique_course_code_to_course_name_map:
-                unique_course_code_to_course_name_map[course_codes[i]] = course_names[i]
+                if course_codes[i] == "COR3001":
+                    unique_course_code_to_course_name_map[course_codes[i]] = "Big Questions"
+                else:
+                    unique_course_code_to_course_name_map[course_codes[i]] = course_names[i]
                 course_code_and_name_str_array.append(course_codes[i] + ": " + course_names[i])
         self.unique_course_code_to_course_name_map = unique_course_code_to_course_name_map
         self.course_code_and_name_str_array = course_code_and_name_str_array
@@ -124,12 +127,12 @@ class Analytics:
         
     ### Filter Functions End###
 
+    ### Get Instructors By Functions Start###  
     def get_terms_by_course_code_and_instructor(self, course_code, instructor_name):
         filtered_by_course_code = self.filter_by_course_code(course_code)
         filtered_by_instructor = filtered_by_course_code[filtered_by_course_code["Instructor"] == instructor_name.strip()]
         return sorted(filtered_by_instructor["Term"].unique(), key=self.term_sort_key, reverse=True)
 
-    ### Get Instructors By Functions Start###  
     def get_instructors_by_course_code(self, course_code):
         """Input: Course Code\nOutput: array of distinct instructors"""
         course_code = course_code.upper()
@@ -139,6 +142,14 @@ class Analytics:
     def get_instructors_by_faculty(self, faculty):
         return self.filtered_data[faculty].unique()
     
+    def get_courses_by_professor(self, instructor_name):
+        filtered_by_instructor = self.filtered_data[self.filtered_data["Instructor"] == instructor_name.upper().strip()]
+        unique_courses = filtered_by_instructor["Course Code"].unique()
+
+        res = []
+        for course_code in unique_courses:
+            res.append(course_code + ": " + self.unique_course_code_to_course_name_map[course_code])
+        return res
     ### Get Instructors By Functions End ###
 
 
@@ -148,6 +159,12 @@ class Analytics:
         df = self.filter_by_course_code_and_instructor(course_code, instructor_name)
         return sorted(df["Bidding Window"].unique(), key=self.bidding_window_sort_key)
     ### Get Bidding Window By Functions End ###  
+
+    def get_sections_for_specific_course_instructor_term(self, course_code, instructor_name, term):
+        course_code = course_code.upper()
+        df = self.filter_by_course_code_and_instructor(course_code, instructor_name)
+        df = df[df["Term"] == term]
+        return sorted(df["Section"].unique())
 
 
     ### Get Course Overview Start ###
@@ -192,8 +209,6 @@ class Analytics:
         course_code = course_code.upper()
         df = self.filter_by_course_code_instructor_and_window(course_code, instructor, window)
         title = "Median 'Median Bid' Price (across all sections) against Term"
-        x_axis_label="Term (Semester)"
-        y_axis_label="Median 'Median Bid Price'"
         x_axis_data = []
         y_axis_data = []
         
@@ -205,7 +220,7 @@ class Analytics:
             x_axis_data.append(term)
             y_axis_data.append(term_median_median_bid)
 
-        return [title, x_axis_label, x_axis_data, y_axis_label, y_axis_data]
+        return [title, x_axis_data, y_axis_data]
     
     def get_bid_price_data_by_course_code_and_term_across_windows(self, course_code, term, instructor):
         course_code = course_code.upper()
@@ -223,6 +238,27 @@ class Analytics:
             y_axis_data.append(window_median_median_bid)
 
         return [title, x_axis_data, y_axis_data]
+    
+    def get_bid_price_data_by_course_code_term_and_section_across_windows(self, course_code, term, instructor, section):
+        course_code = course_code.upper()
+        df = self.filter_by_course_code_instructor_and_term(course_code, instructor, term)
+        df = df[df["Section"] == section]
+        title = f"Median, Min Bid Price against Bidding Window for {term}, Section {section}"
+        x_axis_data = []
+        y_axis_data_median_bid = []
+        y_axis_data_min_bid = []
+        
+        # IMPT to sort the terms
+        windows_for_specified_term = sorted(df["Bidding Window"].unique(), key=self.bidding_window_sort_key)
+        
+        for window in windows_for_specified_term:
+            median_bid = df[df["Bidding Window"] == window]["Median Bid"]
+            min_bid = df[df["Bidding Window"] == window]["Min Bid"]
+            x_axis_data.append(window)
+            y_axis_data_median_bid.append(median_bid)
+            y_axis_data_min_bid.append(min_bid)
+
+        return [title, x_axis_data, y_axis_data_median_bid, y_axis_data_min_bid]
     ### Get Line chart Data for Bid Price Trends End ###
 
 
@@ -261,5 +297,21 @@ class Analytics:
             y_axis_data_after_vacancies.append(window_after_process_vacancies)
         return [y_axis_data_before_vacancies, y_axis_data_after_vacancies]
 
+    def get_before_after_vacancies_by_course_code_term_and_section_across_windows(self, course_code, term, instructor, section):
+        course_code = course_code.upper()
+        df = self.filter_by_course_code_instructor_and_term(course_code, instructor, term)
+        df = df[df["Section"] == section]
+
+        windows = sorted(df["Bidding Window"].unique(), key=self.bidding_window_sort_key)
+        
+        y_axis_data_before_vacancies = []
+        y_axis_data_after_vacancies = []
+        for window in windows:
+            window_df = df[df["Bidding Window"] == window]
+            window_before_process_vacancies = window_df["Before Process Vacancy"].sum()
+            window_after_process_vacancies = window_df["After Process Vacancy"].sum()
+            y_axis_data_before_vacancies.append(window_before_process_vacancies)
+            y_axis_data_after_vacancies.append(window_after_process_vacancies)
+        return [y_axis_data_before_vacancies, y_axis_data_after_vacancies]
     ### Get MultitypeChart Extra DataArr End ### 
   
