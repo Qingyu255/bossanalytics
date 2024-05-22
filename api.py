@@ -13,7 +13,17 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow requests from specified origin
+    # specify domain name as only site we take requests from Eg. bosscharts.com
+    allow_origins=[
+        "https://bosscharts-git-main-qingyu255s-projects.vercel.app",
+        "https://bosscharts-qingyu255s-projects.vercel.app",
+        "http://bosscharts.vercel.app",
+        "http://smubosscharts.com",
+        "http://www.smubosscharts.com",
+        "https://bosscharts.vercel.app",
+        "https://smubosscharts.com",
+        "https://www.smubosscharts.com",
+    ],  # Allow requests from specified origin
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
