@@ -23,6 +23,8 @@ app.add_middleware(
         "https://www.bosscharts.vercel.app",
         "https://www.smubosscharts.com",
         "https://www.smubosscharts.com",
+        "http://localhost:3000",
+        "https://localhost:3000"
     ],  # Allow requests from specified origin
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
