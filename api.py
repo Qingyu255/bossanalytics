@@ -20,8 +20,8 @@ app.add_middleware(
         "http://bosscharts.vercel.app",
         "http://smubosscharts.com",
         "http://www.smubosscharts.com",
-        "https://bosscharts.vercel.app",
-        "https://smubosscharts.com",
+        "https://www.bosscharts.vercel.app",
+        "https://www.smubosscharts.com",
         "https://www.smubosscharts.com",
     ],  # Allow requests from specified origin
     allow_credentials=True,
