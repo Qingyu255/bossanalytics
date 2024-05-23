@@ -183,15 +183,18 @@ class Analytics:
         median_median_bid_y_axis_data = []
         mean_median_bid_y_axis_data = []
 
+        instructors_teaching_in_r1w1 = list(course_df["Instructor"])
+
         teaching_instructors = self.get_instructors_by_course_code(course_code)
         for instructor in teaching_instructors:
-            series = course_df[course_df["Instructor"] == instructor]["Median Bid"]
-            median = round(series.median(), 2)
-            median_median_bid_y_axis_data.append(median)
+            if instructor in instructors_teaching_in_r1w1:
+                series = course_df[course_df["Instructor"] == instructor]["Median Bid"]
+                median = round(series.median(), 2)
+                median_median_bid_y_axis_data.append(median)
 
-            mean = round(series.mean(), 2)
-            mean_median_bid_y_axis_data.append(mean)
-            x_axis_data.append(instructor)
+                mean = round(series.mean(), 2)
+                mean_median_bid_y_axis_data.append(mean)
+                x_axis_data.append(instructor)
         return [title, x_axis_data, median_median_bid_y_axis_data, mean_median_bid_y_axis_data]
     ### Get Course Overview End ###
 
