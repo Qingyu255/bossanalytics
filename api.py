@@ -187,7 +187,7 @@ async def returnCourseOverviewData(course_code):
     try :
         y_axisDataArr = analytics.get_min_max_median_mean_median_bid_values_by_course_code_and_instructor(course_code.upper())
         response = CourseDataResponse(
-            title="Overview (across all sections from AY 2019/20 onwards)",
+            title="Overview (across all sections for Round 1 Window 1 from AY 2019/20 onwards)",
             chartData= ChartData(
                 responsive=True,
                 labels=["Min 'median bid'", "Median 'median bid'", "Mean 'median bid'", "Max 'median bid'"],
@@ -241,16 +241,22 @@ async def returnCourseInstructorOverviewData(course_code):
 @app.get("/coursedata/bidpriceacrossterms/{course_code}/{window}/{instructor_name}")
 async def returnBidPriceDataAcrossTermsForSpecifiedCourseAndWindow(course_code, window, instructor_name):
     try:
-        [title, x_axis_data, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_window_across_terms(course_code.upper(), window, instructor_name)
+        [title, x_axis_data, y_axis_data_median_bid, y_axis_data_mean_bid] = analytics.get_bid_price_data_by_course_code_and_window_across_terms(course_code.upper(), window, instructor_name)
         response = CourseDataResponse(
             title=title,
             chartData= ChartData(
                 responsive=True,
                 labels=x_axis_data,
                 datasets=[{
-                    "label": "Median Bid",
-                    "data": y_axis_data,
+                    "label": "Median 'median bid'",
+                    "data": y_axis_data_median_bid,
                     "borderColor": "rgba(75, 192, 192, 1)",
+                    "backgroundColor": "rgba(41, 128, 185, 1)",
+                },
+                {
+                    "label": "Mean 'median bid'",
+                    "data": y_axis_data_mean_bid,
+                    "borderColor": "rgba(75, 50, 192, 1)",
                     "backgroundColor": "rgba(41, 128, 185, 1)",
                 }]
             )
@@ -265,16 +271,22 @@ async def returnBidPriceDataAcrossTermsForSpecifiedCourseAndWindow(course_code, 
 @app.get("/coursedata/bidpriceacrosswindows/{course_code}/{term}/{instructor_name}")
 async def returnBidPriceDataAcrossWindowsForSpecifiedCourseAndTerm(course_code, term, instructor_name):
     try:
-        [title, x_axis_data, y_axis_data] = analytics.get_bid_price_data_by_course_code_and_term_across_windows(course_code, term, instructor_name)
+        [title, x_axis_data, y_axis_data_median_bid, y_axis_data_mean_bid] = analytics.get_bid_price_data_by_course_code_and_term_across_windows(course_code, term, instructor_name)
         response = CourseDataResponse(
             title=title,
             chartData= ChartData(
                 responsive=True,
                 labels=x_axis_data,
                 datasets=[{
-                    "label": "Median Bid",
-                    "data": y_axis_data,
+                    "label": "Median 'median bid'",
+                    "data": y_axis_data_median_bid,
                     "borderColor": "rgba(75, 192, 192, 1)",
+                    "backgroundColor": "rgba(41, 128, 185, 1)",
+                },
+                {
+                    "label": "Mean 'median bid'",
+                    "data": y_axis_data_mean_bid,
+                    "borderColor": "rgba(75, 50, 192, 1)",
                     "backgroundColor": "rgba(41, 128, 185, 1)",
                 }]
             )

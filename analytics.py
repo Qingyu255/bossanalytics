@@ -35,6 +35,11 @@ class Analytics:
 
     # key used to sort bidding window string
     def bidding_window_sort_key(self, window):
+        if 'Incoming Freshmen' in window:
+            return (-1, window)
+        if 'Incoming Exchange' in window:
+            return (1, window)
+        
         # Regular expression to extract round and window information
         match = re.search(r'(\d+[AB]?).*Window (\d+)', window)
         if match:
@@ -46,16 +51,8 @@ class Analytics:
 
             # Window number as integer
             window_number = int(match.group(2))
-
-            # Check for special category "Incoming Freshmen"
-            if 'Incoming Freshmen' in window:
-                # Assign a lower precedence to incoming freshmen
-                category = 1
-            else:
-                # Regular rounds have higher precedence
-                category = 0
             
-            return (category, main_round, sub_round, window_number)
+            return (0, main_round, sub_round, window_number)
         else:
             # If the pattern doesn't match, return a tuple that sorts the item last
             return (float('inf'),)
@@ -168,6 +165,8 @@ class Analytics:
             course_df = self.filter_by_course_code_and_instructor(course_code, instructor_name)
         else:
             course_df = self.filter_by_course_code(course_code)
+        # filter course df to show round 1 window 1 only
+        course_df = course_df[course_df["Bidding Window"] == "Round 1 Window 1"]
         min_median_value = course_df["Median Bid"].min()
         max_median_value = course_df["Median Bid"].max()
         median_median_value = round(course_df["Median Bid"].median(), 2)
@@ -178,13 +177,13 @@ class Analytics:
         """returns 2d array containing x_axis_data array and y_axis_data array"""
         course_code = course_code.upper()
         course_df = self.filter_by_course_code(course_code)
-        title="Median and Mean 'Median Bid' Price (across all sections) against Instructors"
+        course_df = course_df[course_df["Bidding Window"] == "Round 1 Window 1"]
+        title="Median and Mean 'Median Bid' Price against Instructors (across all sections for Round 1 Window 1 from AY 2019/20 onwards)"
         x_axis_data = []
         median_median_bid_y_axis_data = []
         mean_median_bid_y_axis_data = []
 
         teaching_instructors = self.get_instructors_by_course_code(course_code)
-
         for instructor in teaching_instructors:
             series = course_df[course_df["Instructor"] == instructor]["Median Bid"]
             median = round(series.median(), 2)
@@ -203,34 +202,39 @@ class Analytics:
         df = self.filter_by_course_code_instructor_and_window(course_code, instructor, window)
         title = "Median 'Median Bid' Price (across all sections) against Term"
         x_axis_data = []
-        y_axis_data = []
+        y_axis_data_median_bid = []
+        y_axis_data_mean_bid = []
         
         # IMPT to sort the terms
         terms_taught_for_specified_window = sorted(df["Term"].unique(), key=self.term_sort_key)
         
         for term in terms_taught_for_specified_window:
             term_median_median_bid = round(df[df["Term"] == term]["Median Bid"].median(), 2)
+            term_mean_median_bid = round(df[df["Term"] == term]["Median Bid"].mean(), 2)
             x_axis_data.append(term)
-            y_axis_data.append(term_median_median_bid)
+            y_axis_data_median_bid.append(term_median_median_bid)
+            y_axis_data_mean_bid.append(term_mean_median_bid)
 
-        return [title, x_axis_data, y_axis_data]
+        return [title, x_axis_data, y_axis_data_median_bid, y_axis_data_mean_bid]
     
     def get_bid_price_data_by_course_code_and_term_across_windows(self, course_code, term, instructor):
         course_code = course_code.upper()
         df = self.filter_by_course_code_instructor_and_term(course_code, instructor, term)
         title = f"Median 'Median Bid' Price (across all sections) against Bidding Window for {term}"
         x_axis_data = []
-        y_axis_data = []
-        
+        y_axis_data_median_bid = []
+        y_axis_data_mean_bid = []
         # IMPT to sort the terms
         windows_for_specified_term = sorted(df["Bidding Window"].unique(), key=self.bidding_window_sort_key)
         
         for window in windows_for_specified_term:
             window_median_median_bid = round(df[df["Bidding Window"] == window]["Median Bid"].median(), 2)
+            window_mean_median_bid = round(df[df["Bidding Window"] == window]["Median Bid"].mean(), 2)
             x_axis_data.append(window)
-            y_axis_data.append(window_median_median_bid)
+            y_axis_data_median_bid.append(window_median_median_bid)
+            y_axis_data_mean_bid.append(window_mean_median_bid)
 
-        return [title, x_axis_data, y_axis_data]
+        return [title, x_axis_data, y_axis_data_median_bid, y_axis_data_mean_bid]
     
     def get_bid_price_data_by_course_code_term_and_section_across_windows(self, course_code, term, instructor, section):
         course_code = course_code.upper()
