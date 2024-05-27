@@ -187,7 +187,7 @@ async def returnCourseOverviewData(course_code):
     try :
         y_axisDataArr = analytics.get_min_max_median_mean_median_bid_values_by_course_code_and_instructor(course_code.upper())
         response = CourseDataResponse(
-            title="Overview (across all sections for Round 1 Window 1 from AY 2019/20 onwards)",
+            title=f"{course_code.upper()} Overview (across all sections and windows for Round 1 Window 1 from AY 2019/20 onwards)",
             chartData= ChartData(
                 responsive=True,
                 labels=["Min 'median bid'", "Median 'median bid'", "Mean 'median bid'", "Max 'median bid'"],

@@ -1,4 +1,12 @@
+.idea
+
+.vscode
+
 # Ignore Bid data excel files
 data/
 
 *.pyc
+
+analytics_notebook_oop.ipynb
+
+analytics_notebook_raw.ipynb

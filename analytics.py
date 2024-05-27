@@ -178,7 +178,7 @@ class Analytics:
         course_code = course_code.upper()
         course_df = self.filter_by_course_code(course_code)
         course_df = course_df[course_df["Bidding Window"] == "Round 1 Window 1"]
-        title="Median and Mean 'Median Bid' Price against Instructors (across all sections for Round 1 Window 1 from AY 2019/20 onwards)"
+        title="Median and Mean 'Median Bid' Price against Instructors (across all sections and windows for Round 1 Window 1 from AY 2019/20 onwards)"
         x_axis_data = []
         median_median_bid_y_axis_data = []
         mean_median_bid_y_axis_data = []
@@ -203,7 +203,7 @@ class Analytics:
     def get_bid_price_data_by_course_code_and_window_across_terms(self, course_code, window, instructor):
         course_code = course_code.upper()
         df = self.filter_by_course_code_instructor_and_window(course_code, instructor, window)
-        title = "Median 'Median Bid' Price (across all sections) against Term"
+        title = "Median and Mean 'Median Bid' Price (across all sections and windows) against Term"
         x_axis_data = []
         y_axis_data_median_bid = []
         y_axis_data_mean_bid = []
@@ -223,7 +223,7 @@ class Analytics:
     def get_bid_price_data_by_course_code_and_term_across_windows(self, course_code, term, instructor):
         course_code = course_code.upper()
         df = self.filter_by_course_code_instructor_and_term(course_code, instructor, term)
-        title = f"Median 'Median Bid' Price (across all sections) against Bidding Window for {term}"
+        title = f"Median and Mean 'Median Bid' Price (across all sections and windows) against Bidding Window for {term}"
         x_axis_data = []
         y_axis_data_median_bid = []
         y_axis_data_mean_bid = []
