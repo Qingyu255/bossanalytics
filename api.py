@@ -15,19 +15,20 @@ app.add_middleware(
     CORSMiddleware,
     # specify domain name as only site we take requests from Eg. bosscharts.com
     allow_origins=[
-        "https://bosscharts-git-main-qingyu255s-projects.vercel.app",
-        "https://bosscharts-qingyu255s-projects.vercel.app",
-        "http://bosscharts.vercel.app",
-        "http://smubosscharts.com",
-        "http://www.smubosscharts.com",
-        "https://www.bosscharts.vercel.app",
-        "https://www.smubosscharts.com",
-        "https://www.smubosscharts.com",
-        "http://localhost:3000",
-        "https://localhost:3000",
-        "http://smu-bidwise.vercel.app",
-        "https://smu-bidwise.vercel.app",
-        "https://smu-bidwise-git-main-qingyu255s-projects.vercel.app"
+        # "https://bosscharts-git-main-qingyu255s-projects.vercel.app",
+        # "https://bosscharts-qingyu255s-projects.vercel.app",
+        # "http://bosscharts.vercel.app",
+        # "http://smubosscharts.com",
+        # "http://www.smubosscharts.com",
+        # "https://www.bosscharts.vercel.app",
+        # "https://www.smubosscharts.com",
+        # "https://www.smubosscharts.com",
+        # "http://localhost:3000",
+        # "https://localhost:3000",
+        # "http://smu-bidwise.vercel.app",
+        # "https://smu-bidwise.vercel.app",
+        # "https://smu-bidwise-git-main-qingyu255s-projects.vercel.app"
+        "*"
     ],  # Allow requests from specified origin
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
