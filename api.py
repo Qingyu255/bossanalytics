@@ -24,7 +24,9 @@ app.add_middleware(
         "https://www.smubosscharts.com",
         "https://www.smubosscharts.com",
         "http://localhost:3000",
-        "https://localhost:3000"
+        "https://localhost:3000",
+        "https://smu-bidwise.vercel.app/",
+        "https://smu-bidwise-git-main-qingyu255s-projects.vercel.app/"
     ],  # Allow requests from specified origin
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
