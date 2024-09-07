@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 from analytics import Analytics
+import uvicorn
 
 dataframe = pd.read_excel("data/merged_file.xls")
 analytics = Analytics(dataframe)
@@ -15,20 +16,21 @@ app.add_middleware(
     CORSMiddleware,
     # specify domain name as only site we take requests from Eg. bosscharts.com
     allow_origins=[
-        # "https://bosscharts-git-main-qingyu255s-projects.vercel.app",
-        # "https://bosscharts-qingyu255s-projects.vercel.app",
-        # "http://bosscharts.vercel.app",
-        # "http://smubosscharts.com",
-        # "http://www.smubosscharts.com",
-        # "https://www.bosscharts.vercel.app",
-        # "https://www.smubosscharts.com",
-        # "https://www.smubosscharts.com",
-        # "http://localhost:3000",
-        # "https://localhost:3000",
-        # "http://smu-bidwise.vercel.app",
-        # "https://smu-bidwise.vercel.app",
-        # "https://smu-bidwise-git-main-qingyu255s-projects.vercel.app"
-        "*"
+        "https://bosscharts-git-main-qingyu255s-projects.vercel.app",
+        "https://bosscharts-qingyu255s-projects.vercel.app",
+        "http://bosscharts.vercel.app",
+        "http://smubosscharts.com",
+        "http://www.smubosscharts.com",
+        "https://www.bosscharts.vercel.app",
+        "https://www.smubosscharts.com",
+        "https://www.smubosscharts.com",
+        "http://localhost:3000",
+        "https://localhost:3000",
+        "https://localhost:8080",
+        "http://smu-bidwise.vercel.app",
+        "https://smu-bidwise.vercel.app",
+        "https://smu-bidwise-git-main-qingyu255s-projects.vercel.app"
+        # "*"
     ],  # Allow requests from specified origin
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
@@ -425,3 +427,6 @@ async def returnBeforeAfterVacanciesForCourseTermAndSectionOverWindow(course_cod
             status_code=500,
             detail=str(e)
         )
+    
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8080)
