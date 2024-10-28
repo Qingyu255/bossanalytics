@@ -19,6 +19,7 @@ app.add_middleware(
         "https://bosscharts-git-main-qingyu255s-projects.vercel.app",
         "https://bosscharts-qingyu255s-projects.vercel.app",
         "http://bosscharts.vercel.app",
+        "https://bosscharts.vercel.app",
         "http://smubosscharts.com",
         "http://www.smubosscharts.com",
         "https://www.bosscharts.vercel.app",
