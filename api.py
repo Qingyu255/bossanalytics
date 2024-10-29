@@ -31,6 +31,10 @@ app.add_middleware(
         "http://smu-bidwise.vercel.app",
         "https://smu-bidwise.vercel.app",
         "https://smu-bidwise-git-main-qingyu255s-projects.vercel.app"
+        "https://www.smubidwise.com",
+        "https://smubidwise.com",
+        "http://www.smubidwise.com",
+        "http://smubidwise.com",
         # "*"
     ],  # Allow requests from specified origin
     allow_credentials=True,
