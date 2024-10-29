@@ -30,7 +30,7 @@ app.add_middleware(
         "https://localhost:8080",
         "http://smu-bidwise.vercel.app",
         "https://smu-bidwise.vercel.app",
-        "https://smu-bidwise-git-main-qingyu255s-projects.vercel.app"
+        "https://smu-bidwise-git-main-qingyu255s-projects.vercel.app",
         "https://www.smubidwise.com",
         "https://smubidwise.com",
         "http://www.smubidwise.com",
