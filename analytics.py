@@ -6,7 +6,7 @@ class Analytics:
         ### preprocess data in initialisation of class ###
 
         # Handling missing data: Remove rows with "Median Bid" equal to 0 or empty "Instructor" column
-        filtered_data = data_frame.drop(data_frame[(data_frame["Median Bid"] == 0) | (data_frame["Instructor"].fillna("") == "") | (data_frame["Session"] != "Regular Academic Session")].index)
+        filtered_data = data_frame.drop(data_frame[(data_frame["Median Bid"] == 0) | (data_frame["Median Bid"] == "-") | (data_frame["Instructor"].fillna("") == "") | (data_frame["Session"] != "Regular Academic Session")].index)
         filtered_data["round_successful_bids"] = filtered_data["Before Process Vacancy"] - filtered_data["After Process Vacancy"]
 
         # Strip the 'Instructor' and 'Course' values for better data integrity
