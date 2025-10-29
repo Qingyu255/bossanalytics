@@ -6,7 +6,7 @@ from typing import List, Dict, Optional
 from analytics import Analytics
 import uvicorn
 
-dataframe = pd.read_excel("data/merged_file.xls")
+dataframe = pd.read_excel("data/merged_file.xlsx")
 analytics = Analytics(dataframe)
 valid_course_codes = analytics.get_unique_course_codes()
 app = FastAPI()
