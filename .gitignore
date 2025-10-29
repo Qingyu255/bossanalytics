@@ -4,6 +4,7 @@
 
 # Ignore Bid data excel files
 data/
+!data/merged_file.xlsx
 
 *.pyc
 
