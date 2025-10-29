@@ -40,19 +40,46 @@ def merge_excel_files(folder_path):
     dfs = []
 
     for i, filename in enumerate(excel_files):
-        if filename != ".DS_Store":
-            file_path = os.path.join(folder_path, filename)
-            df = pd.read_excel(file_path)
-            df.rename(columns=column_mapping, inplace=True)
-            df = df[reference_columns]
-            if i == 0:
-                dfs.append(df)
+        # skip hidden files like .DS_Store
+        if filename.startswith('.'):
+            continue
+
+        file_path = os.path.join(folder_path, filename)
+        ext = os.path.splitext(filename)[1].lower()
+
+        try:
+            if ext == '.csv':
+                df = pd.read_csv(file_path)
+            elif ext in ['.xls', '.xlsx']:
+                # specify engine for xlsx; let pandas choose for xls
+                if ext == '.xlsx':
+                    df = pd.read_excel(file_path, engine='openpyxl')
+                else:
+                    df = pd.read_excel(file_path)
             else:
-                
-                dfs.append(df[1:])
+                print(f"Skipping unsupported file type: {filename}")
+                continue
+        except Exception as e:
+            print(f"Failed to read {filename}: {e}")
+            continue
+
+        df.rename(columns=column_mapping, inplace=True)
+
+        # ensure all reference columns exist
+        for col in reference_columns:
+            if col not in df.columns:
+                df[col] = pd.NA
+
+        df = df[reference_columns]
+
+        # preserve previous behavior: skip the header row for subsequent files
+        if len(dfs) == 0:
+            dfs.append(df)
+        else:
+            dfs.append(df[1:])
 
     merged_df = pd.concat(dfs, ignore_index=True)
-    output_path = "/Users/qingyuliu/PycharmProjects/bossanalytics/data/merged_file.xls"
+    output_path = "/Users/qingyuliu/PycharmProjects/bossanalytics/data/merged_file.xlsx"
     merged_df.to_excel(output_path, index=False, engine="openpyxl")
 
 
