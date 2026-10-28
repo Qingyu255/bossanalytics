@@ -7,8 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ["analytics.py", "api.py", "./"]
 
-RUN mkdir ./data
-COPY data/merged_file.xlsx ./data
+COPY data/new_data_to_use ./data/new_data_to_use
 
 EXPOSE 8080
 

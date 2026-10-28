@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,7 +9,26 @@ from typing import List, Dict, Optional
 from analytics import Analytics
 import uvicorn
 
-dataframe = pd.read_excel("data/merged_file.xlsx")
+project_dir = Path(__file__).resolve().parent
+source_data_dir = project_dir.parent / "smu-bidwise" / "scrapers" / "BidResults_scraper" / "new_data_to_use"
+bundled_data_dir = project_dir / "data" / "new_data_to_use"
+data_dir = Path(os.environ.get(
+    "BID_RESULTS_DATA_DIR",
+    source_data_dir if source_data_dir.is_dir() else bundled_data_dir,
+))
+data_files = sorted(data_dir.glob("*.xlsx"))
+if not data_files:
+    raise FileNotFoundError(f"No bid result workbooks found in {data_dir}")
+
+dataframes = []
+for data_file in data_files:
+    data = pd.read_excel(data_file)
+    if "Term" not in data.columns:
+        # Some BOSS exports include a title row above the column headers.
+        data = pd.read_excel(data_file, header=1)
+    dataframes.append(data)
+
+dataframe = pd.concat(dataframes, ignore_index=True)
 analytics = Analytics(dataframe)
 valid_course_codes = analytics.get_unique_course_codes()
 app = FastAPI()

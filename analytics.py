@@ -60,7 +60,8 @@ class Analytics:
     # key used to sort Bidding Window string
     def term_sort_key(self, term):
         year, term_num = term.split(" Term ")
-        return int(year.split("-")[0]), int(term_num)
+        match = re.fullmatch(r"(\d+)([A-Z]?)", term_num)
+        return int(year.split("-")[0]), int(match.group(1)), match.group(2)
 
     ### Getters Start ###
     def get_unique_professors(self):
@@ -314,4 +315,3 @@ class Analytics:
             y_axis_data_after_vacancies.append(window_after_process_vacancies)
         return [y_axis_data_before_vacancies, y_axis_data_after_vacancies]
     ### Get MultitypeChart Extra DataArr End ### 
-  

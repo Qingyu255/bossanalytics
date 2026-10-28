@@ -3,8 +3,9 @@
 .vscode
 
 # Ignore Bid data excel files
-data/
+data/*
 !data/merged_file.xlsx
+!data/new_data_to_use/
 
 *.pyc
 
